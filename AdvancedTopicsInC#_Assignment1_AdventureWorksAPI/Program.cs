@@ -8,6 +8,7 @@ builder.Services.AddDbContext<AdventureWorksLt2019Context>(options => {
 });
 var app = builder.Build();
 
+// Address
 app.MapGet("/address", (AdventureWorksLt2019Context db) =>
 {
     return Results.Ok(new
@@ -15,9 +16,54 @@ app.MapGet("/address", (AdventureWorksLt2019Context db) =>
         Addresses = db.Addresses.ToList()
     });
 });
-app.MapPost("/address", (AdventureWorksLt2019Context db, Address address) =>
+app.MapPost("/address/create", (AdventureWorksLt2019Context db, Address address) =>
 {
     db.Add(address);
+    db.SaveChanges();
+    return Results.Ok();
+});
+
+// Customer
+app.MapGet("/customer", (AdventureWorksLt2019Context db) =>
+{
+    return Results.Ok(new
+    {
+        Customers = db.Customers.ToList()
+    });
+});
+app.MapPost("/customer/create", (AdventureWorksLt2019Context db, Customer customer) =>
+{
+    db.Add(customer);
+    db.SaveChanges();
+    return Results.Ok();
+});
+
+// Product
+app.MapGet("/product", (AdventureWorksLt2019Context db) =>
+{
+    return Results.Ok(new
+    {
+        Products = db.Products.ToList()
+    });
+});
+app.MapPost("/product/create", (AdventureWorksLt2019Context db, Product product) =>
+{
+    db.Add(product);
+    db.SaveChanges();
+    return Results.Ok();
+});
+
+// SalesOrderHeader
+app.MapGet("/salesorder", (AdventureWorksLt2019Context db) =>
+{
+    return Results.Ok(new
+    {
+        SalesOrderHeaders = db.SalesOrderHeaders.ToList()
+    });
+});
+app.MapPost("/salesorder/create", (AdventureWorksLt2019Context db, SalesOrderHeader salesOrder) =>
+{
+    db.Add(salesOrder);
     db.SaveChanges();
     return Results.Ok();
 });
