@@ -3,48 +3,22 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+
+builder.Services.AddDbContext<AdventureWorksLt2019Context>(options => {
+    options.UseSqlServer(builder.Configuration.GetConnectionString("AdventureWorksDb"));
+});
+
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
 
 
 
 
-//app.MapGet("/Addresses", async (AdventureWorksLt2019Context db) =>
-//{
-//    return await db.Addresses.ToListAsync();
-//});
-
-
-//app.MapGet("/Addresses/{Id}", (int Id, AdventureWorksLt2019Context db) =>
-//{
-//    Address address = db.Addresses.FirstOrDefault(a => a.AddressId == Id);
-
-
-
-//    return Results.Ok(address);
-//});
-
-
-app.MapGet("/Addresses/{Id}", async (int? Id, AdventureWorksLt2019Context db) =>
+//Addresses
+app.MapGet("/Addresses/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
 {
     if (Id != null)
     {
@@ -62,6 +36,64 @@ app.MapGet("/Addresses/{Id}", async (int? Id, AdventureWorksLt2019Context db) =>
     }
 });
 
+
+//Customers
+app.MapGet("/Customers/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
+{
+    if (Id != null)
+    {
+        Customer customer = await db.Customers.FindAsync(Id);
+        if (customer == null)
+        {
+            return Results.NotFound();
+        }
+        return Results.Ok(customer);
+    }
+    else
+    {
+        List<Customer> customers = await db.Customers.ToListAsync();
+        return Results.Ok(customers);
+    }
+});
+
+
+//Products
+app.MapGet("/Products/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
+{
+    if (Id != null)
+    {
+        Product product = await db.Products.FindAsync(Id);
+        if (product == null)
+        {
+            return Results.NotFound();
+        }
+        return Results.Ok(product);
+    }
+    else
+    {
+        List<Product> products = await db.Products.ToListAsync();
+        return Results.Ok(products);
+    }
+});
+
+//SalesOrderHeaders
+app.MapGet("/SalesOrderHeaders/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
+{
+    if (Id != null)
+    {
+        SalesOrderHeader salesOrderHeader = await db.SalesOrderHeaders.FindAsync(Id);
+        if (salesOrderHeader == null)
+        {
+            return Results.NotFound();
+        }
+        return Results.Ok(salesOrderHeader);
+    }
+    else
+    {
+        List<SalesOrderHeader> salesOrderHeaders = await db.SalesOrderHeaders.ToListAsync();
+        return Results.Ok(salesOrderHeaders);
+    }
+});
 
 
 app.Run();
