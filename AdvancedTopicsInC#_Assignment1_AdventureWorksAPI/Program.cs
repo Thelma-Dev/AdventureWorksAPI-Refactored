@@ -9,12 +9,22 @@ builder.Services.AddDbContext<AdventureWorksLt2019Context>(options => {
 var app = builder.Build();
 
 // Address
-app.MapGet("/address", (AdventureWorksLt2019Context db) =>
+app.MapGet("/Addresses/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
 {
-    return Results.Ok(new
+    if (Id != null)
     {
-        Addresses = db.Addresses.ToList()
-    });
+        Address address = await db.Addresses.FindAsync(Id);
+        if (address == null)
+        {
+            return Results.NotFound();
+        }
+        return Results.Ok(address);
+    }
+    else
+    {
+        List<Address> addresses = await db.Addresses.ToListAsync();
+        return Results.Ok(addresses);
+    }
 });
 app.MapPost("/address/create", (AdventureWorksLt2019Context db, Address address) =>
 {
@@ -24,12 +34,22 @@ app.MapPost("/address/create", (AdventureWorksLt2019Context db, Address address)
 });
 
 // Customer
-app.MapGet("/customer", (AdventureWorksLt2019Context db) =>
+app.MapGet("/Customers/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
 {
-    return Results.Ok(new
+    if (Id != null)
     {
-        Customers = db.Customers.ToList()
-    });
+        Customer customer = await db.Customers.FindAsync(Id);
+        if (customer == null)
+        {
+            return Results.NotFound();
+        }
+        return Results.Ok(customer);
+    }
+    else
+    {
+        List<Customer> customers = await db.Customers.ToListAsync();
+        return Results.Ok(customers);
+    }
 });
 app.MapPost("/customer/create", (AdventureWorksLt2019Context db, Customer customer) =>
 {
@@ -39,12 +59,22 @@ app.MapPost("/customer/create", (AdventureWorksLt2019Context db, Customer custom
 });
 
 // Product
-app.MapGet("/product", (AdventureWorksLt2019Context db) =>
+app.MapGet("/Products/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
 {
-    return Results.Ok(new
+    if (Id != null)
     {
-        Products = db.Products.ToList()
-    });
+        Product product = await db.Products.FindAsync(Id);
+        if (product == null)
+        {
+            return Results.NotFound();
+        }
+        return Results.Ok(product);
+    }
+    else
+    {
+        List<Product> products = await db.Products.ToListAsync();
+        return Results.Ok(products);
+    }
 });
 app.MapPost("/product/create", (AdventureWorksLt2019Context db, Product product) =>
 {
@@ -54,12 +84,22 @@ app.MapPost("/product/create", (AdventureWorksLt2019Context db, Product product)
 });
 
 // SalesOrderHeader
-app.MapGet("/salesorder", (AdventureWorksLt2019Context db) =>
+app.MapGet("/SalesOrderHeaders/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
 {
-    return Results.Ok(new
+    if (Id != null)
     {
-        SalesOrderHeaders = db.SalesOrderHeaders.ToList()
-    });
+        SalesOrderHeader salesOrderHeader = await db.SalesOrderHeaders.FindAsync(Id);
+        if (salesOrderHeader == null)
+        {
+            return Results.NotFound();
+        }
+        return Results.Ok(salesOrderHeader);
+    }
+    else
+    {
+        List<SalesOrderHeader> salesOrderHeaders = await db.SalesOrderHeaders.ToListAsync();
+        return Results.Ok(salesOrderHeaders);
+    }
 });
 app.MapPost("/salesorder/create", (AdventureWorksLt2019Context db, SalesOrderHeader salesOrder) =>
 {
