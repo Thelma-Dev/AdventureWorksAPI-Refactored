@@ -3,21 +3,12 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-
-
 builder.Services.AddDbContext<AdventureWorksLt2019Context>(options => {
     options.UseSqlServer(builder.Configuration.GetConnectionString("AdventureWorksDb"));
 });
-
-
 var app = builder.Build();
 
-
-
-
-
-//Addresses
+// Address
 app.MapGet("/Addresses/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
 {
     if (Id != null)
@@ -35,9 +26,14 @@ app.MapGet("/Addresses/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =
         return Results.Ok(addresses);
     }
 });
+app.MapPost("/address/create", (AdventureWorksLt2019Context db, Address address) =>
+{
+    db.Add(address);
+    db.SaveChanges();
+    return Results.Ok();
+});
 
-
-//Customers
+// Customer
 app.MapGet("/Customers/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
 {
     if (Id != null)
@@ -55,9 +51,14 @@ app.MapGet("/Customers/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =
         return Results.Ok(customers);
     }
 });
+app.MapPost("/customer/create", (AdventureWorksLt2019Context db, Customer customer) =>
+{
+    db.Add(customer);
+    db.SaveChanges();
+    return Results.Ok();
+});
 
-
-//Products
+// Product
 app.MapGet("/Products/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
 {
     if (Id != null)
@@ -75,8 +76,14 @@ app.MapGet("/Products/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
         return Results.Ok(products);
     }
 });
+app.MapPost("/product/create", (AdventureWorksLt2019Context db, Product product) =>
+{
+    db.Add(product);
+    db.SaveChanges();
+    return Results.Ok();
+});
 
-//SalesOrderHeaders
+// SalesOrderHeader
 app.MapGet("/SalesOrderHeaders/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
 {
     if (Id != null)
@@ -94,6 +101,11 @@ app.MapGet("/SalesOrderHeaders/{Id?}", async (int? Id, AdventureWorksLt2019Conte
         return Results.Ok(salesOrderHeaders);
     }
 });
-
+app.MapPost("/salesorder/create", (AdventureWorksLt2019Context db, SalesOrderHeader salesOrder) =>
+{
+    db.Add(salesOrder);
+    db.SaveChanges();
+    return Results.Ok();
+});
 
 app.Run();
