@@ -63,24 +63,15 @@ app.MapPut("/address/update/{id}", async (AdventureWorksLt2019Context db, int id
     }
 });
 app.MapDelete("/Address/Delete/{id}", async (AdventureWorksLt2019Context db, int id) =>
-
 {
     var address = await db.Addresses.FindAsync(id);
-
     if (address == null)
-
     {
-
         return Results.NotFound();
-
     }
-
     db.Addresses.Remove(address);
-
     await db.SaveChangesAsync();
-
     return Results.NoContent();
-
 });
 
 // Customer
@@ -133,6 +124,17 @@ app.MapPut("/customer/update/{id}", async(AdventureWorksLt2019Context db, int id
         return Results.Ok(customer);
     }
 });
+app.MapDelete("/customer/Delete/{id}", async (AdventureWorksLt2019Context db, int id) =>
+{
+    var customer = await db.Customers.FindAsync(id);
+    if (customer == null)
+    {
+        return Results.NotFound();
+    }
+    db.Customers.Remove(customer);
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+});
 app.MapPost("/customer/AddToAddress", async (AdventureWorksLt2019Context db, CustomerAddress ca) =>
 {
     CustomerAddress createdCA = new CustomerAddress();
@@ -163,7 +165,7 @@ app.MapPost("/customer/AddToAddress", async (AdventureWorksLt2019Context db, Cus
 });
 
 // Product
-app.MapGet("/Products/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
+app.MapGet("/Product/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
 {
     if (Id != null)
     {
@@ -211,9 +213,20 @@ app.MapPut("/product/update/{id}", async (AdventureWorksLt2019Context db, int id
         return Results.Ok(productToUpdate);
     }
 });
+app.MapDelete("/product/Delete/{id}", async (AdventureWorksLt2019Context db, int id) =>
+{
+    var product = await db.Products.FindAsync(id);
+    if (product == null)
+    {
+        return Results.NotFound();
+    }
+    db.Products.Remove(product);
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+});
 
 // SalesOrderHeader
-app.MapGet("/SalesOrderHeaders/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
+app.MapGet("/SalesOrderHeader/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
 {
     if (Id != null)
     {
@@ -268,6 +281,17 @@ app.MapPut("/salesorder/update/{id}", async (AdventureWorksLt2019Context db, int
         return Results.Ok(salesOrder);
     }
 });
+app.MapDelete("/salesOrderHeader/Delete/{id}", async (AdventureWorksLt2019Context db, int id) =>
+{
+    var salesOrder = await db.SalesOrderHeaders.FindAsync(id);
+    if (salesOrder == null)
+    {
+        return Results.NotFound();
+    }
+    db.SalesOrderHeaders.Remove(salesOrder);
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+});
 
 //---------------------------------------------------------------------------------------------------
 
@@ -276,7 +300,7 @@ app.MapGet("/Customer/Details/{CustomerId}", (int CustomerId, AdventureWorksLt20
 
 {
 
-    Customer customer = db.Customers.Include(a => a.CustomerAddresses)
+    Customer? customer = db.Customers.Include(a => a.CustomerAddresses)
 
     .ThenInclude(b => b.Address)
 
@@ -313,7 +337,7 @@ app.MapGet("/Customer/Details/{CustomerId}", (int CustomerId, AdventureWorksLt20
 app.MapGet("/Address/Details/{AddressId}", (int AddressId, AdventureWorksLt2019Context db) =>
 {
 
-    Address address = db.Addresses.Include(a => a.CustomerAddresses)
+    Address? address = db.Addresses.Include(a => a.CustomerAddresses)
     .ThenInclude(b => b.Customer)
 
     .FirstOrDefault(c => c.AddressId == AddressId);
