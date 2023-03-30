@@ -15,7 +15,7 @@ app.MapGet("/Addresses/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =
 {
     if (Id != null)
     {
-        Address address = await db.Addresses.FindAsync(Id);
+        Address? address = await db.Addresses.FindAsync(Id);
         if (address == null)
         {
             return Results.NotFound();
@@ -46,7 +46,7 @@ app.MapPut("/address/update/{id}", async (AdventureWorksLt2019Context db, int id
         if (address.CountryRegion != null) { addressToUpdate.CountryRegion = address.CountryRegion; }
         if (address.PostalCode != null) { addressToUpdate.PostalCode = address.PostalCode; }
         if (address.StateProvince != null) { addressToUpdate.StateProvince = address.StateProvince; }
-        if (address.ModifiedDate != null) { addressToUpdate.ModifiedDate = address.ModifiedDate; }
+        if (address.ModifiedDate != addressToUpdate.ModifiedDate) { addressToUpdate.ModifiedDate = address.ModifiedDate; }
         db.Update(addressToUpdate);
         db.SaveChanges();
         return Results.Ok(addressToUpdate);
@@ -54,8 +54,28 @@ app.MapPut("/address/update/{id}", async (AdventureWorksLt2019Context db, int id
     {
         db.Add(address);
         db.SaveChanges();
-        return Results.Ok(addressToUpdate);
+        return Results.Ok(address);
     }
+});
+app.MapDelete("/Address/Delete/{id}", async (AdventureWorksLt2019Context db, int id) =>
+
+{
+    var address = await db.Addresses.FindAsync(id);
+
+    if (address == null)
+
+    {
+
+        return Results.NotFound();
+
+    }
+
+    db.Addresses.Remove(address);
+
+    await db.SaveChangesAsync();
+
+    return Results.NoContent();
+
 });
 
 // Customer
@@ -63,7 +83,7 @@ app.MapGet("/Customers/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =
 {
     if (Id != null)
     {
-        Customer customer = await db.Customers.FindAsync(Id);
+        Customer? customer = await db.Customers.FindAsync(Id);
         if (customer == null)
         {
             return Results.NotFound();
@@ -99,13 +119,41 @@ app.MapPut("/customer/update/{id}", async(AdventureWorksLt2019Context db, int id
         if (customerToUpdate.Phone != customer.Phone) { customerToUpdate.Phone = customer.Phone; }
         if (customerToUpdate.ModifiedDate != customer.ModifiedDate) { customerToUpdate.ModifiedDate = customer.ModifiedDate; }
         db.Update(customerToUpdate);
-        db.SaveChangesAsync();
+        await db.SaveChangesAsync();
         return Results.Ok(customerToUpdate);
     }else
     {
-        db.Add(customerToUpdate);
-        db.SaveChangesAsync();
-        return Results.Ok(customerToUpdate);
+        db.Add(customer);
+        await db.SaveChangesAsync();
+        return Results.Ok(customer);
+    }
+});
+app.MapPost("/customer/AddToAddress", async (AdventureWorksLt2019Context db, CustomerAddress ca) =>
+{
+    CustomerAddress createdCA = new CustomerAddress();
+    createdCA.AddressId = ca.AddressId;
+    createdCA.CustomerId = ca.CustomerId;
+    Address? address = db.Addresses.Include(a => a.CustomerAddresses).ThenInclude(ca => ca.Customer).First(a => a.AddressId == ca.AddressId);
+    Customer? customer = db.Customers.Include(c => c.CustomerAddresses).ThenInclude(ca => ca.Address).First(c => c.CustomerId == ca.CustomerId);
+    Console.WriteLine(ca.AddressId);
+    if (address != null && customer != null)
+    {
+        createdCA.Address = address;
+        createdCA.Customer = customer;
+        if (ca.AddressType != null)
+        {
+            createdCA.AddressType = ca.AddressType;
+        } else
+        {
+            createdCA.AddressType = "Main Office";
+        }
+        db.CustomerAddresses.Add(createdCA);
+        await db.SaveChangesAsync();
+        Customer endCustomer = createdCA.Customer;
+        return Results.Ok();
+    } else
+    {
+        return Results.NotFound();
     }
 });
 
@@ -114,7 +162,7 @@ app.MapGet("/Products/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
 {
     if (Id != null)
     {
-        Product product = await db.Products.FindAsync(Id);
+        Product? product = await db.Products.FindAsync(Id);
         if (product == null)
         {
             return Results.NotFound();
@@ -148,11 +196,13 @@ app.MapPut("/product/update/{id}", async (AdventureWorksLt2019Context db, int id
         if (productToUpdate.Weight != product.Weight) { productToUpdate.Weight = product.Weight;}
         if (productToUpdate.SellStartDate != product.SellStartDate) { productToUpdate.SellStartDate = product.SellStartDate; }
         if (productToUpdate.SellEndDate != product.SellEndDate) { productToUpdate.SellEndDate = product.SellEndDate; }
+        db.Update(productToUpdate);
+        db.SaveChanges();
         return Results.Ok(productToUpdate);
     } else
     {
-        db.Add(productToUpdate);
-        db.SaveChangesAsync();
+        db.Add(product);
+        await db.SaveChangesAsync();
         return Results.Ok(productToUpdate);
     }
 });
@@ -162,7 +212,7 @@ app.MapGet("/SalesOrderHeaders/{Id?}", async (int? Id, AdventureWorksLt2019Conte
 {
     if (Id != null)
     {
-        SalesOrderHeader salesOrderHeader = await db.SalesOrderHeaders.FindAsync(Id);
+        SalesOrderHeader? salesOrderHeader = await db.SalesOrderHeaders.FindAsync(Id);
         if (salesOrderHeader == null)
         {
             return Results.NotFound();
@@ -203,7 +253,14 @@ app.MapPut("/salesorder/update/{id}", async (AdventureWorksLt2019Context db, int
         if (salesOrderToUpdate.Freight != salesOrder.Freight) { salesOrderToUpdate.Freight = salesOrder.Freight; }
         if (salesOrderToUpdate.TotalDue != salesOrder.TotalDue) { salesOrderToUpdate.TotalDue = salesOrder.TotalDue; }
         if (salesOrderToUpdate.Comment != salesOrder.Comment) { salesOrderToUpdate.Comment = salesOrder.Comment; }
-
+        db.Update(salesOrderToUpdate);
+        await db.SaveChangesAsync();
+        return Results.Ok(salesOrderToUpdate);
+    } else
+    {
+        db.Add(salesOrder);
+        await db.SaveChangesAsync();
+        return Results.Ok(salesOrder);
     }
 });
 
