@@ -301,9 +301,9 @@ public partial class AdventureWorksLt2019Context : DbContext
                 .HasComment("Product weight.")
                 .HasColumnType("decimal(8, 2)");
 
-            entity.HasOne(d => d.ProductCategory).WithMany(p => p.Products).HasForeignKey(d => d.ProductCategoryId);
+            entity.HasOne(d => d.ProductCategory).WithMany(p => p.Products).HasForeignKey(d => d.ProductCategoryId).OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.ProductModel).WithMany(p => p.Products).HasForeignKey(d => d.ProductModelId);
+            entity.HasOne(d => d.ProductModel).WithMany(p => p.Products).HasForeignKey(d => d.ProductModelId).OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<ProductCategory>(entity =>
@@ -563,7 +563,8 @@ public partial class AdventureWorksLt2019Context : DbContext
 
             entity.HasOne(d => d.BillToAddress).WithMany(p => p.SalesOrderHeaderBillToAddresses)
                 .HasForeignKey(d => d.BillToAddressId)
-                .HasConstraintName("FK_SalesOrderHeader_Address_BillTo_AddressID");
+                .HasConstraintName("FK_SalesOrderHeader_Address_BillTo_AddressID")
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             entity.HasOne(d => d.Customer).WithMany(p => p.SalesOrderHeaders)
                 .HasForeignKey(d => d.CustomerId)
@@ -571,7 +572,8 @@ public partial class AdventureWorksLt2019Context : DbContext
 
             entity.HasOne(d => d.ShipToAddress).WithMany(p => p.SalesOrderHeaderShipToAddresses)
                 .HasForeignKey(d => d.ShipToAddressId)
-                .HasConstraintName("FK_SalesOrderHeader_Address_ShipTo_AddressID");
+                .HasConstraintName("FK_SalesOrderHeader_Address_ShipTo_AddressID")
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<VGetAllCategory>(entity =>
