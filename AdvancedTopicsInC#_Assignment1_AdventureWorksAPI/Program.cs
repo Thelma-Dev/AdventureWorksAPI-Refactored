@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using System.Drawing;
 using NuGet.Versioning;
-
+using AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,66 +12,86 @@ builder.Services.AddDbContext<AdventureWorksLt2019Context>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("AdventureWorksDb"));
 });
+
+builder.Services.AddScoped<IAddressRepo, AddressRepo>();
+
 var app = builder.Build();
 
 // Address
 
-app.MapGet("/Addresses/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
+app.MapGet("/Address/", async (int id, IAddressRepo repo) =>
 {
-    if (Id != null)
+    HashSet<Address> addresses = new HashSet<Address>();
+
+    if (id == null)
     {
-        Address? address = await db.Addresses.FindAsync(Id);
-        if (address == null)
+        addresses = repo.GetAddress();
+        return Results.Ok(addresses);
+
+    } 
+    else
+    {
+        Address address = repo.GetAddressById(id);
+
+        if(address == null)
         {
             return Results.NotFound();
         }
-        return Results.Ok(address);
-    }
-    else
-    {
-        List<Address> addresses = await db.Addresses.ToListAsync();
-        return Results.Ok(addresses);
+        else
+        {
+            return Results.Ok(address);
+        }
     }
 });
-app.MapPost("/address/create", (AdventureWorksLt2019Context db, Address address) =>
+app.MapPost("/address/create", (IAddressRepo repo, Address address) =>
 {
-    db.Add(address);
-    db.SaveChanges();
-    return Results.Ok();
-});
-app.MapPut("/address/update/{id}", async (AdventureWorksLt2019Context db, int id, Address address) =>
-{
-    IEnumerable<Address> addresses = await db.Addresses.ToListAsync();
-    Address addressToUpdate = addresses.First(a => a.AddressId == id);
-    if (addressToUpdate != null && !addressToUpdate.Equals(address))
+    try
     {
-        if (address.AddressLine1 != null) { addressToUpdate.AddressLine1 = address.AddressLine1; }
-        if (address.AddressLine2 != null) { addressToUpdate.AddressLine2 = address.AddressLine2; }
-        if (address.City != null) { addressToUpdate.City = address.City; }
-        if (address.CountryRegion != null) { addressToUpdate.CountryRegion = address.CountryRegion; }
-        if (address.PostalCode != null) { addressToUpdate.PostalCode = address.PostalCode; }
-        if (address.StateProvince != null) { addressToUpdate.StateProvince = address.StateProvince; }
-        if (address.ModifiedDate != addressToUpdate.ModifiedDate) { addressToUpdate.ModifiedDate = address.ModifiedDate; }
-        db.Update(addressToUpdate);
-        db.SaveChanges();
-        return Results.Ok(addressToUpdate);
-    } else
-    {
-        db.Add(address);
-        db.SaveChanges();
-        return Results.Ok(address);
-    }
-});
-app.MapDelete("/Address/Delete/{id}", async (AdventureWorksLt2019Context db, int id) =>
-{
-    var address = await db.Addresses.FindAsync(id);
-    if (address == null)
+        address.Rowguid = Guid.NewGuid();
+        address.ModifiedDate = DateTime.Now;
+        repo.CreateAddress(address);
+        return Results.Created($"/Address?id={address.AddressId}", address);
+    } catch (Exception ex)
     {
         return Results.NotFound();
     }
-    db.Addresses.Remove(address);
-    await db.SaveChangesAsync();
-    return Results.NoContent();
+   
+});
+app.MapPut("/address/update", async (IAddressRepo repo, int id, Address address) =>
+{
+    Address selectAddress = repo.GetAddressById(id);
+    if (selectAddress == null)
+    {
+        address.Rowguid = Guid.NewGuid();
+        address.ModifiedDate = DateTime.Now;
+        repo.CreateAddress(address);
+        return Results.Ok(repo.GetAddressById(address.AddressId));
+    }
+    else
+    {
+        selectAddress.AddressLine1 = address.AddressLine1;
+        selectAddress.AddressLine2 = address.AddressLine2;
+        selectAddress.City = address.City;
+        selectAddress.StateProvince = address.StateProvince;
+        selectAddress.CountryRegion = address.CountryRegion;
+        selectAddress.PostalCode = address.PostalCode;
+        selectAddress.ModifiedDate = DateTime.Now;
+        repo.UpdateAddress(selectAddress.AddressId);
+        return Results.Ok(repo.GetAddressById(selectAddress.AddressId));
+    }
+
+});
+app.MapDelete("/Address/Delete", async (IAddressRepo repo, int id) =>
+{
+    Address address = repo.GetAddressById(id);
+
+    if (address == null)
+    {
+        return Results.NotFound();
+    } else
+    {
+        return Results.Ok($" Address with Id {address.AddressId} is removed successfully.");
+    }
 });
 
 // Customer
@@ -334,37 +354,38 @@ app.MapGet("/Customer/Details/{CustomerId}", (int CustomerId, AdventureWorksLt20
 
 });
 
-app.MapGet("/Address/Details/{AddressId}", (int AddressId, AdventureWorksLt2019Context db) =>
+app.MapGet("/Address/Details", (int AddressId, IAddressRepo repo) =>
 {
+    //return repo.GetCustomerInAddress(AddressId);
 
-    Address? address = db.Addresses.Include(a => a.CustomerAddresses)
-    .ThenInclude(b => b.Customer)
+    //Address? address = db.Addresses.Include(a => a.CustomerAddresses)
+    //.ThenInclude(b => b.Customer)
 
-    .FirstOrDefault(c => c.AddressId == AddressId);
+    //.FirstOrDefault(c => c.AddressId == AddressId);
 
 
-    if (address == null)
-    {
-        return Results.BadRequest("Address does not exist.");
-    }
+    //if (address == null)
+    //{
+    //    return Results.BadRequest("Address does not exist.");
+    //}
 
-    var customer = address.CustomerAddresses.Select(a => a.Customer);
+    //var customer = address.CustomerAddresses.Select(a => a.Customer);
 
-    var customerAddress = new
+    //var customerAddress = new
 
-    {
-        Address = address,
-        Customer = customer
-    };
+    //{
+    //    Address = address,
+    //    Customer = customer
+    //};
 
-    var options = new JsonSerializerOptions
-    {
-        ReferenceHandler = ReferenceHandler.Preserve
-    };
+    //var options = new JsonSerializerOptions
+    //{
+    //    ReferenceHandler = ReferenceHandler.Preserve
+    //};
 
-    var serializer = System.Text.Json.JsonSerializer.Serialize(customerAddress, options);
+    //var serializer = System.Text.Json.JsonSerializer.Serialize(customerAddress, options);
 
-    return Results.Ok(serializer);
+    //return Results.Ok(serializer);
 });
 
 
