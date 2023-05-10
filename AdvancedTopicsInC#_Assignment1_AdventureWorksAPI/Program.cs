@@ -42,10 +42,6 @@ app.MapGet("/Address/", async (int? id, IAddressRepo repo) =>
             return Results.Ok(address);
         }
     }
-
-
-
-
 });
 app.MapPost("/address/create", (IAddressRepo repo, Address address) =>
 {

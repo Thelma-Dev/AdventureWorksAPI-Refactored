@@ -16,7 +16,5 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Data
         public HashSet<Address> GetAddress();
 
 
-        public ICollection<CustomerAddress> GetCustomerInAddress(int addressId);
-
     }
 }
