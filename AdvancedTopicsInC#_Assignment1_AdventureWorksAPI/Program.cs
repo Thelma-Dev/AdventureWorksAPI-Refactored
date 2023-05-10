@@ -19,7 +19,7 @@ var app = builder.Build();
 
 // Address
 
-app.MapGet("/Address/", async (int? id, IAddressRepo repo) =>
+app.MapGet("/Address/", async (int id, IAddressRepo repo) =>
 {
     HashSet<Address> addresses = new HashSet<Address>();
 
@@ -356,7 +356,7 @@ app.MapGet("/Customer/Details/{CustomerId}", (int CustomerId, AdventureWorksLt20
 
 app.MapGet("/Address/Details", (int AddressId, IAddressRepo repo) =>
 {
-    return repo.GetCustomerInAddress(AddressId);
+    //return repo.GetCustomerInAddress(AddressId);
 
     //Address? address = db.Addresses.Include(a => a.CustomerAddresses)
     //.ThenInclude(b => b.Customer)

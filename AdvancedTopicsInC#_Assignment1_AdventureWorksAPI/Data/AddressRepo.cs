@@ -11,7 +11,7 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Data
         {
             _context = context;
         }
-        public Address GetAddressById(int? id)
+        public Address GetAddressById(int id)
         {
             return _context.Addresses.Find(id);
         }

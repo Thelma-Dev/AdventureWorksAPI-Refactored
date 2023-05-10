@@ -11,7 +11,7 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Data
 
         public void DeleteAddress(int id);
 
-        public Address GetAddressById(int? id);
+        public Address GetAddressById(int id);
 
         public HashSet<Address> GetAddress();
 
