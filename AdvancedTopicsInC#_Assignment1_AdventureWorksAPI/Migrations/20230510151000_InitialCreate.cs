@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class initialCreate : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -68,8 +68,8 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Migrations
                     SalesPerson = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true, comment: "The customer's sales person, an employee of AdventureWorks Cycles."),
                     EmailAddress = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, comment: "E-mail address for the person."),
                     Phone = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: true, comment: "Phone number associated with the person."),
-                    PasswordHash = table.Column<string>(type: "varchar(128)", unicode: false, maxLength: 128, nullable: false, comment: "Password for the e-mail account."),
-                    PasswordSalt = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: false, comment: "Random value concatenated with the password string before the password is hashed."),
+                    PasswordHash = table.Column<string>(type: "varchar(128)", unicode: false, maxLength: 128, nullable: true, comment: "Password for the e-mail account."),
+                    PasswordSalt = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true, comment: "Random value concatenated with the password string before the password is hashed."),
                     rowguid = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "(newid())", comment: "ROWGUIDCOL number uniquely identifying the record. Used to support a merge replication sample."),
                     ModifiedDate = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())", comment: "Date and time the record was last updated.")
                 },
@@ -528,6 +528,7 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Migrations
                 schema: "SalesLT",
                 table: "SalesOrderHeader",
                 column: "ShipToAddressID");
+            
         }
 
         /// <inheritdoc />

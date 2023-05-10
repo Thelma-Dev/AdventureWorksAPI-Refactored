@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Migrations
 {
     [DbContext(typeof(AdventureWorksLt2019Context))]
-    [Migration("20230328180701_initialCreate")]
-    partial class initialCreate
+    [Migration("20230510151000_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -179,14 +179,12 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Migrations
                         .HasComment("0 = The data in FirstName and LastName are stored in western style (first name, last name) order.  1 = Eastern style (last name, first name) order.");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasMaxLength(128)
                         .IsUnicode(false)
                         .HasColumnType("varchar(128)")
                         .HasComment("Password for the e-mail account.");
 
                     b.Property<string>("PasswordSalt")
-                        .IsRequired()
                         .HasMaxLength(10)
                         .IsUnicode(false)
                         .HasColumnType("varchar(10)")
