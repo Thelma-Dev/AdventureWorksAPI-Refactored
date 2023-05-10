@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using System.Drawing;
 using NuGet.Versioning;
-
+using AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +12,9 @@ builder.Services.AddDbContext<AdventureWorksLt2019Context>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("AdventureWorksDb"));
 });
+
+builder.Services.AddScoped<ICustomerRepo, CustomerRepository>();
+builder.Services.AddScoped<ICustomerAddressRepo, CustomerAddressRepo>();
 var app = builder.Build();
 
 // Address
@@ -98,32 +101,51 @@ app.MapPost("/customer/create", (AdventureWorksLt2019Context db, Customer custom
     db.SaveChanges();
     return Results.Ok();
 });
-app.MapPut("/customer/update/{id}", async(AdventureWorksLt2019Context db, int id, Customer customer) =>
+
+
+app.MapPut("/customer/update", async(ICustomerRepo repo, int id, Customer? customer) =>
 {
-    IEnumerable<Customer> customers = await db.Customers.ToListAsync();
-    Customer customerToUpdate = customers.First(c => c.CustomerId == id);
-    if (customerToUpdate != null && !customerToUpdate.Equals(customer))
+    try
     {
-        if (customerToUpdate.Title != customer.Title) { customerToUpdate.Title = customer.Title; }
-        if (customerToUpdate.FirstName != customer.FirstName) { customerToUpdate.FirstName = customer.FirstName; }
-        if (customerToUpdate.LastName != customer.LastName) { customerToUpdate.LastName = customer.LastName; }
-        if (customerToUpdate.MiddleName != customer.MiddleName) { customerToUpdate.MiddleName = customer.MiddleName; }
-        if (customerToUpdate.Suffix != customer.Suffix) { customerToUpdate.Suffix = customer.Suffix; }
-        if (customerToUpdate.CompanyName != customer.CompanyName) { customerToUpdate.CompanyName = customer.CompanyName; }
-        if (customerToUpdate.SalesPerson != customer.SalesPerson) { customerToUpdate.SalesPerson = customer.SalesPerson; }
-        if (customerToUpdate.EmailAddress != customer.EmailAddress) { customerToUpdate.EmailAddress = customer.EmailAddress; }
-        if (customerToUpdate.Phone != customer.Phone) { customerToUpdate.Phone = customer.Phone; }
-        if (customerToUpdate.ModifiedDate != customer.ModifiedDate) { customerToUpdate.ModifiedDate = customer.ModifiedDate; }
-        db.Update(customerToUpdate);
-        await db.SaveChangesAsync();
-        return Results.Ok(customerToUpdate);
-    }else
-    {
-        db.Add(customer);
-        await db.SaveChangesAsync();
-        return Results.Ok(customer);
+        Customer? customerToUpdate = repo.GetCustomer(id);
+
+        if (customerToUpdate == null && customer != null )
+        {
+            Customer newCustomer = new Customer();
+
+            newCustomer.Rowguid = Guid.NewGuid();
+            newCustomer.ModifiedDate = DateTime.Now;
+
+            //repo.CreateCustomer(newCustomer);
+
+            return Results.Created($"/customer?id={customer.CustomerId}", customer);
+        }
+        else
+        {
+            customerToUpdate.NameStyle = customer.NameStyle;
+            customerToUpdate.Title = customer.Title;
+            customerToUpdate.FirstName = customer.FirstName;
+            customerToUpdate.MiddleName = customer.MiddleName;
+            customerToUpdate.LastName = customer.LastName;
+            customerToUpdate.CompanyName = customer.CompanyName;
+            customerToUpdate.Phone = customer.Phone;
+            customerToUpdate.EmailAddress = customer.EmailAddress;
+            customerToUpdate.Rowguid = Guid.NewGuid();
+            customerToUpdate.ModifiedDate = DateTime.Now;
+
+            repo.UpdateCustomer(customerToUpdate);
+
+            return Results.Ok(customerToUpdate);
+        }
     }
+    catch(Exception exe)
+    {
+        return Results.BadRequest();
+    }
+
 });
+
+
 app.MapDelete("/customer/Delete/{id}", async (AdventureWorksLt2019Context db, int id) =>
 {
     var customer = await db.Customers.FindAsync(id);
@@ -135,32 +157,52 @@ app.MapDelete("/customer/Delete/{id}", async (AdventureWorksLt2019Context db, in
     await db.SaveChangesAsync();
     return Results.NoContent();
 });
-app.MapPost("/customer/AddToAddress", async (AdventureWorksLt2019Context db, CustomerAddress ca) =>
+
+
+app.MapPost("/customer/AddToAddress", async (ICustomerRepo repo, ICustomerAddressRepo customerAddressRepo, int CustomerId, int AddressId) =>
 {
-    CustomerAddress createdCA = new CustomerAddress();
-    createdCA.AddressId = ca.AddressId;
-    createdCA.CustomerId = ca.CustomerId;
-    Address? address = db.Addresses.Include(a => a.CustomerAddresses).ThenInclude(ca => ca.Customer).First(a => a.AddressId == ca.AddressId);
-    Customer? customer = db.Customers.Include(c => c.CustomerAddresses).ThenInclude(ca => ca.Address).First(c => c.CustomerId == ca.CustomerId);
-    Console.WriteLine(ca.AddressId);
-    if (address != null && customer != null)
+    try
     {
-        createdCA.Address = address;
-        createdCA.Customer = customer;
-        if (ca.AddressType != null)
+        Customer? customer = repo.GetCustomer(CustomerId);
+
+        Address? address = repo.GetAddress(AddressId);
+
+        if (customer == null)
         {
-            createdCA.AddressType = ca.AddressType;
-        } else
-        {
-            createdCA.AddressType = "Main Office";
+            return Results.BadRequest("Customer Not Found");
         }
-        db.CustomerAddresses.Add(createdCA);
-        await db.SaveChangesAsync();
-        Customer endCustomer = createdCA.Customer;
-        return Results.Ok();
-    } else
+
+        if (customer != null && address != null) // and address is not null
+        {
+            CustomerAddress ca = new CustomerAddress();
+
+            ca.CustomerId = customer.CustomerId;
+            ca.AddressId = address.AddressId;
+            ca.AddressType = "Main Office";
+            ca.Rowguid = Guid.NewGuid();
+            ca.ModifiedDate = DateTime.Now;
+
+            if (!customerAddressRepo.AllCustomerAddress().Any(ca => ca.CustomerId == customer.CustomerId && ca.AddressId == address.AddressId))
+            {
+                repo.AddCustomerToAddress(ca);
+
+
+                return Results.Ok($"{customer.FirstName} is added to {address.AddressLine1}");
+            }
+            else
+            {
+                return Results.BadRequest("Customer already added to address");
+            }
+        }
+        else
+        {
+            return Results.BadRequest("Address not found");
+        }
+        
+    }
+    catch(Exception exe)
     {
-        return Results.NotFound();
+        return Results.BadRequest();
     }
 });
 
@@ -296,42 +338,35 @@ app.MapDelete("/salesOrderHeader/Delete/{id}", async (AdventureWorksLt2019Contex
 //---------------------------------------------------------------------------------------------------
 
 
-app.MapGet("/Customer/Details/{CustomerId}", (int CustomerId, AdventureWorksLt2019Context db) =>
-
+app.MapGet("/customer/details", (int CustomerId, ICustomerRepo repo, ICustomerAddressRepo customerAddressRepo) =>
 {
-
-    Customer? customer = db.Customers.Include(a => a.CustomerAddresses)
-
-    .ThenInclude(b => b.Address)
-
-    .FirstOrDefault(c => c.CustomerId == CustomerId);
-
-    if (customer == null)
-
+    try
     {
-        return Results.BadRequest("Customer does not exist.");
+        Customer? customer = repo.GetCustomer(CustomerId);
+
+        if(customer == null)
+        {
+            return Results.NotFound();
+        }
+
+        ICollection<CustomerAddress> customerAddresses = customerAddressRepo.GetCustomerAddress(CustomerId);
+
+        
+        List<Address> Address = new List<Address>();
+
+        foreach(CustomerAddress ca in customerAddresses)
+        {
+            Address address = repo.GetAddress(ca.AddressId);
+            Address.Add(address);
+        }
+
+        return Results.Ok();
+       
     }
-    var address = customer.CustomerAddresses.Select(a => a.Address);
-
-    var customerAddress = new
-
+    catch(Exception exe)
     {
-
-        Customer = customer,
-
-        Address = address
-
-    };
-
-    var options = new JsonSerializerOptions
-    {
-        ReferenceHandler = ReferenceHandler.Preserve
-    };
-
-    var serializer = System.Text.Json.JsonSerializer.Serialize(customerAddress, options);
-
-    return Results.Ok(serializer);
-
+        return Results.BadRequest();
+    }
 });
 
 app.MapGet("/Address/Details/{AddressId}", (int AddressId, AdventureWorksLt2019Context db) =>
