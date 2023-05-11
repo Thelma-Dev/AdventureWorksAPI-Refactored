@@ -22,7 +22,7 @@ builder.Services.AddScoped<ICustomerAddressRepo, CustomerAddressRepo>();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
     });
 
 var app = builder.Build();
