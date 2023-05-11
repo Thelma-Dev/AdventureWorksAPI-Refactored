@@ -13,8 +13,11 @@ builder.Services.AddDbContext<AdventureWorksLt2019Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AdventureWorksDb"));
 });
 
+
+builder.Services.AddScoped<IAddressRepo, AddressRepo>();
 builder.Services.AddScoped<ICustomerRepo, CustomerRepository>();
 builder.Services.AddScoped<ICustomerAddressRepo, CustomerAddressRepo>();
+
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -23,6 +26,82 @@ builder.Services.AddControllers()
     });
 
 var app = builder.Build();
+
+
+app.MapGet("/Address/", async (int id, IAddressRepo repo) =>
+{
+    HashSet<Address> addresses = new HashSet<Address>();
+
+    if (id == null)
+    {
+        addresses = repo.GetAddress();
+        return Results.Ok(addresses);
+
+    } 
+    else
+    {
+        Address address = repo.GetAddressById(id);
+
+        if(address == null)
+        {
+            return Results.NotFound();
+        }
+        else
+        {
+            return Results.Ok(address);
+        }
+    }
+});
+app.MapPost("/address/create", (IAddressRepo repo, Address address) =>
+{
+    try
+    {
+        address.Rowguid = Guid.NewGuid();
+        address.ModifiedDate = DateTime.Now;
+        repo.CreateAddress(address);
+        return Results.Created($"/Address?id={address.AddressId}", address);
+    } catch (Exception ex)
+    {
+        return Results.NotFound();
+    }
+   
+});
+app.MapPut("/address/update", async (IAddressRepo repo, int id, Address address) =>
+{
+    Address selectAddress = repo.GetAddressById(id);
+    if (selectAddress == null)
+    {
+        address.Rowguid = Guid.NewGuid();
+        address.ModifiedDate = DateTime.Now;
+        repo.CreateAddress(address);
+        return Results.Ok(repo.GetAddressById(address.AddressId));
+    }
+    else
+    {
+        selectAddress.AddressLine1 = address.AddressLine1;
+        selectAddress.AddressLine2 = address.AddressLine2;
+        selectAddress.City = address.City;
+        selectAddress.StateProvince = address.StateProvince;
+        selectAddress.CountryRegion = address.CountryRegion;
+        selectAddress.PostalCode = address.PostalCode;
+        selectAddress.ModifiedDate = DateTime.Now;
+        repo.UpdateAddress(selectAddress.AddressId);
+        return Results.Ok(repo.GetAddressById(selectAddress.AddressId));
+    }
+
+});
+app.MapDelete("/Address/Delete", async (IAddressRepo repo, int id) =>
+{
+    Address address = repo.GetAddressById(id);
+
+    if (address == null)
+    {
+        return Results.NotFound();
+    } else
+    {
+        return Results.Ok($" Address with Id {address.AddressId} is removed successfully.");
+    }
+});
 
 
 // Customer
@@ -202,8 +281,39 @@ app.MapDelete("/salesOrderHeader/Delete/{id}", async (AdventureWorksLt2019Contex
 
 
 
+app.MapGet("/Address/Details", (int AddressId, IAddressRepo repo) =>
+{
+    //return repo.GetCustomerInAddress(AddressId);
+
+    //Address? address = db.Addresses.Include(a => a.CustomerAddresses)
+    //.ThenInclude(b => b.Customer)
+
+    //.FirstOrDefault(c => c.AddressId == AddressId);
 
 
+    //if (address == null)
+    //{
+    //    return Results.BadRequest("Address does not exist.");
+    //}
+
+    //var customer = address.CustomerAddresses.Select(a => a.Customer);
+
+    //var customerAddress = new
+
+    //{
+    //    Address = address,
+    //    Customer = customer
+    //};
+
+    //var options = new JsonSerializerOptions
+    //{
+    //    ReferenceHandler = ReferenceHandler.Preserve
+    //};
+
+    //var serializer = System.Text.Json.JsonSerializer.Serialize(customerAddress, options);
+
+    //return Results.Ok(serializer);
+});
 
 
 
