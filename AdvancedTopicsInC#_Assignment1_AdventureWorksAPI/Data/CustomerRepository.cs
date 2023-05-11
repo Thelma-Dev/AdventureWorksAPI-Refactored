@@ -32,5 +32,10 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Data
            _context.CustomerAddresses.Add(customerAddress);
             _context.SaveChanges();
         }
+
+        public Customer GetCustomerById(int id)
+        {
+            return _context.Customers.Where(c => c.CustomerId == id).First();
+        }
     }
 }

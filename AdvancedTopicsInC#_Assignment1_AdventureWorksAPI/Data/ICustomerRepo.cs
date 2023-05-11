@@ -11,5 +11,7 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Data
         public void AddCustomerToAddress(CustomerAddress customerAddress);
 
         public Address GetAddress(int id);
+
+        public Customer GetCustomerById(int id);
     }
 }
