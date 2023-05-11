@@ -94,5 +94,42 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Models
             }
         }
 
+        
+        public static IResult GetAddressDetails(int AddressId, IAddressRepo repo)
+        {
+            //return repo.GetCustomerInAddress(AddressId);
+
+            //Address? address = db.Addresses.Include(a => a.CustomerAddresses)
+            //.ThenInclude(b => b.Customer)
+
+            //.FirstOrDefault(c => c.AddressId == AddressId);
+
+
+            //if (address == null)
+            //{
+            //    return Results.BadRequest("Address does not exist.");
+            //}
+
+            //var customer = address.CustomerAddresses.Select(a => a.Customer);
+
+            //var customerAddress = new
+
+            //{
+            //    Address = address,
+            //    Customer = customer
+            //};
+
+            //var options = new JsonSerializerOptions
+            //{
+            //    ReferenceHandler = ReferenceHandler.Preserve
+            //};
+
+            //var serializer = System.Text.Json.JsonSerializer.Serialize(customerAddress, options);
+
+            //return Results.Ok(serializer);
+
+            return Results.Ok();
+        }
+
     }
 }
