@@ -1,4 +1,7 @@
 ﻿using AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Data;
+using System.Net;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Models
 {
@@ -28,9 +31,20 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Models
                     Address.Add(address);
                 }
 
-                
+                var customerAddress = new
+                {
+                    Customer = customer
+                    
+                };
 
-                return Results.Ok(customer);
+                var options = new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.Preserve
+                };
+
+                var serializer = System.Text.Json.JsonSerializer.Serialize(customerAddress, options);
+
+                return Results.Ok(serializer);
 
             }
             catch (Exception exe)
