@@ -14,8 +14,7 @@ builder.Services.AddDbContext<AdventureWorksLt2019Context>(options =>
 });
 
 
-
-
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IAddressRepo, AddressRepo>();
 builder.Services.AddScoped<ICustomerRepo, CustomerRepository>();
 builder.Services.AddScoped<ICustomerAddressRepo, CustomerAddressRepo>();
@@ -109,39 +108,54 @@ app.MapDelete("/Address/Delete", async (IAddressRepo repo, int id) =>
 // Customer
 app.MapGet("/Customers/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
 {
+    HashSet<Customer> customers = new HashSet<Customer>();
+
     if (Id != null)
     {
-        Customer? customer = await db.Customers.FindAsync(Id);
-        if (customer == null)
-        {
-            return Results.NotFound();
-        }
+        Customer customer = repo.GetCustomerById(Id);
         return Results.Ok(customer);
     }
     else
     {
-        List<Customer> customers = await db.Customers.ToListAsync();
-        return Results.Ok(customers);
+        customers = repo.GetAllCustomers();
+
+        if (customers == null)
+        {
+            return Results.NotFound();
+        }
+        else
+        { 
+            return Results.Ok(customers);
+        }       
     }
 });
-app.MapPost("/customer/create", (AdventureWorksLt2019Context db, Customer customer) =>
+
+// Creating Customer
+app.MapPost("/customer/create", (ICustomerRepository repo, Customer customer) =>
 {
-    db.Add(customer);
-    db.SaveChanges();
-    return Results.Ok();
+    customer.Rowguid = Guid.NewGuid();
+    customer.ModifiedDate = DateTime.Now;
+    repo.CreateCustomer(customer);
+;
+    return Results.Created($"/customer?id={customer.CustomerId}", customer);
 });
 
 
-app.MapDelete("/customer/Delete/{id}", async (AdventureWorksLt2019Context db, int id) =>
-{
-    var customer = await db.Customers.FindAsync(id);
-    if (customer == null)
+// Removing Customer
+app.MapDelete("/customer/delete", (ICustomerRepository repo, int id) => {
+
+    Customer customer = repo.GetCustomerById(id);
+
+    if (customer != null)
+    {
+        repo.RemoveCustomer(customer);
+        return Results.Ok($" Customer with Id {customer.CustomerId} is removed successfully.");
+    }
+    else
     {
         return Results.NotFound();
-    }
-    db.Customers.Remove(customer);
-    await db.SaveChangesAsync();
-    return Results.NoContent();
+    } 
+
 });
 
 
