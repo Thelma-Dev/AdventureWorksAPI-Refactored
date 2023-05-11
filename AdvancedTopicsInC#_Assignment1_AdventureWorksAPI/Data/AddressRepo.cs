@@ -39,10 +39,10 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Data
             _context.SaveChanges();
         }
 
-        private ICollection<Customer> GetCustomers()
+        public HashSet<Customer> GetCustomers()
         {
 
-            return _context.Customers.ToList();
+            return _context.Customers.ToHashSet();
         }
 
     }

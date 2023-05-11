@@ -8,7 +8,7 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Models
     public class CustomerMethods
     {
 
-        public static IResult GetCustomerDetails(ICustomerRepo customerRepo, ICustomerAddressRepo customerAddressRepo, int customerId)
+        public static IResult GetCustomerDetails(ICustomerRepo customerRepo, ICustomerAddressRepo customerAddressRepo,IAddressRepo addressRepo ,int customerId)
         {
 
             try
@@ -31,20 +31,50 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Models
                     Address.Add(address);
                 }
 
-                var customerAddress = new
+               
+                var CustomerAddress = addressRepo.GetCustomers().Where(c => c.CustomerId == customerId).Select(x => new
                 {
-                    Customer = customer
-                    
-                };
+                    CustomerId = x.CustomerId,
+                    Title = x.Title,
+                    FirstName = x.FirstName,
+                    LastName = x.LastName,
+                    CompnayName = x.CompanyName,
+                    SalesPerson = x.SalesPerson,
+                    EmailAddress = x.EmailAddress,
+                    Phone = x.Phone,
+                    Rowguid = x.Rowguid,
+                    ModifiedDate = x.ModifiedDate,
+                    Address = x.CustomerAddresses.Where(ca => ca.CustomerId == customerId).Select(a => new
+                    {
+                        AddressId = a.Address.AddressId,
+                        AddressLine1 = a.Address.AddressLine1,
+                        AddressLine2 = a.Address.AddressLine2,
+                        City = a.Address.City,
+                        StateProvince = a.Address.StateProvince,
+                        CountryRegion = a.Address.CountryRegion,
+                        PostalCode = a.Address.PostalCode,
+                    })
 
-                var options = new JsonSerializerOptions
-                {
-                    ReferenceHandler = ReferenceHandler.Preserve
-                };
+                });
 
-                var serializer = System.Text.Json.JsonSerializer.Serialize(customerAddress, options);
+                return Results.Ok(CustomerAddress);
 
-                return Results.Ok(serializer);
+
+
+                //var customerAddress = new
+                //{
+                //    Customer = customer
+
+                //};
+
+                //var options = new JsonSerializerOptions
+                //{
+                //    ReferenceHandler = ReferenceHandler.Preserve
+                //};
+
+                //var serializer = System.Text.Json.JsonSerializer.Serialize(customerAddress, options);
+
+                //return Results.Ok(serializer);
 
             }
             catch (Exception exe)

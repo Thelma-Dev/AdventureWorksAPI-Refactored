@@ -13,6 +13,10 @@ builder.Services.AddDbContext<AdventureWorksLt2019Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AdventureWorksDb"));
 });
 
+//builder.Services.AddControllers().AddJsonOptions(x =>
+//                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+
+
 
 builder.Services.AddScoped<IAddressRepo, AddressRepo>();
 builder.Services.AddScoped<ICustomerRepo, CustomerRepository>();
