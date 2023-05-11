@@ -14,6 +14,8 @@ builder.Services.AddDbContext<AdventureWorksLt2019Context>(options =>
 });
 
 
+
+
 builder.Services.AddScoped<IAddressRepo, AddressRepo>();
 builder.Services.AddScoped<ICustomerRepo, CustomerRepository>();
 builder.Services.AddScoped<ICustomerAddressRepo, CustomerAddressRepo>();
