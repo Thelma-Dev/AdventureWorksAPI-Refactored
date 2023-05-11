@@ -16,7 +16,6 @@ builder.Services.AddDbContext<AdventureWorksLt2019Context>(options =>
 
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IAddressRepo, AddressRepo>();
-builder.Services.AddScoped<ICustomerRepo, CustomerRepository>();
 builder.Services.AddScoped<ICustomerAddressRepo, CustomerAddressRepo>();
 
 
@@ -29,135 +28,21 @@ builder.Services.AddControllers()
 var app = builder.Build();
 
 
-app.MapGet("/Address/", async (int id, IAddressRepo repo) =>
-{
-    HashSet<Address> addresses = new HashSet<Address>();
+app.MapGet("/Address/", AddressMethods.Read);
 
-    if (id == null)
-    {
-        addresses = repo.GetAddress();
-        return Results.Ok(addresses);
+app.MapPost("/address/create", AddressMethods.CreateAddress);
 
-    } 
-    else
-    {
-        Address address = repo.GetAddressById(id);
+app.MapPut("/address/update", AddressMethods.UpdateAddress);
 
-        if(address == null)
-        {
-            return Results.NotFound();
-        }
-        else
-        {
-            return Results.Ok(address);
-        }
-    }
-});
-app.MapPost("/address/create", (IAddressRepo repo, Address address) =>
-{
-    try
-    {
-        address.Rowguid = Guid.NewGuid();
-        address.ModifiedDate = DateTime.Now;
-        repo.CreateAddress(address);
-        return Results.Created($"/Address?id={address.AddressId}", address);
-    } catch (Exception ex)
-    {
-        return Results.NotFound();
-    }
-   
-});
-app.MapPut("/address/update", async (IAddressRepo repo, int id, Address address) =>
-{
-    Address selectAddress = repo.GetAddressById(id);
-    if (selectAddress == null)
-    {
-        address.Rowguid = Guid.NewGuid();
-        address.ModifiedDate = DateTime.Now;
-        repo.CreateAddress(address);
-        return Results.Ok(repo.GetAddressById(address.AddressId));
-    }
-    else
-    {
-        selectAddress.AddressLine1 = address.AddressLine1;
-        selectAddress.AddressLine2 = address.AddressLine2;
-        selectAddress.City = address.City;
-        selectAddress.StateProvince = address.StateProvince;
-        selectAddress.CountryRegion = address.CountryRegion;
-        selectAddress.PostalCode = address.PostalCode;
-        selectAddress.ModifiedDate = DateTime.Now;
-        repo.UpdateAddress(selectAddress.AddressId);
-        return Results.Ok(repo.GetAddressById(selectAddress.AddressId));
-    }
-
-});
-app.MapDelete("/Address/Delete", async (IAddressRepo repo, int id) =>
-{
-    Address address = repo.GetAddressById(id);
-
-    if (address == null)
-    {
-        return Results.NotFound();
-    } else
-    {
-        return Results.Ok($" Address with Id {address.AddressId} is removed successfully.");
-    }
-});
+app.MapDelete("/Address/Delete", AddressMethods.RemoveAddress); 
 
 
 // Customer
-app.MapGet("/Customers/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
-{
-    HashSet<Customer> customers = new HashSet<Customer>();
+app.MapGet("/Customers/{Id?}", CustomerMethods.Read);
 
-    if (Id != null)
-    {
-        Customer customer = repo.GetCustomerById(Id);
-        return Results.Ok(customer);
-    }
-    else
-    {
-        customers = repo.GetAllCustomers();
+app.MapPost("/customer/create", CustomerMethods.CreateCustomer);
 
-        if (customers == null)
-        {
-            return Results.NotFound();
-        }
-        else
-        { 
-            return Results.Ok(customers);
-        }       
-    }
-});
-
-// Creating Customer
-app.MapPost("/customer/create", (ICustomerRepository repo, Customer customer) =>
-{
-    customer.Rowguid = Guid.NewGuid();
-    customer.ModifiedDate = DateTime.Now;
-    repo.CreateCustomer(customer);
-;
-    return Results.Created($"/customer?id={customer.CustomerId}", customer);
-});
-
-
-// Removing Customer
-app.MapDelete("/customer/delete", (ICustomerRepository repo, int id) => {
-
-    Customer customer = repo.GetCustomerById(id);
-
-    if (customer != null)
-    {
-        repo.RemoveCustomer(customer);
-        return Results.Ok($" Customer with Id {customer.CustomerId} is removed successfully.");
-    }
-    else
-    {
-        return Results.NotFound();
-    } 
-
-});
-
+app.MapDelete("/customer/delete", CustomerMethods.RemoveCustomer); 
 
 app.MapPut("/customer/update", CustomerMethods.UpdateCustomer);
 

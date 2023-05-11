@@ -12,6 +12,9 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Data
 
         public Customer GetCustomerById(int? id);
 
-        
+        public void UpdateCustomer(Customer customer);
+
+        public void AddCustomerToAddress(CustomerAddress customerAddress);
+
     }
 }

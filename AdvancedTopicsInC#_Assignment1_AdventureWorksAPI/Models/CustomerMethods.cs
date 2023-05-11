@@ -7,13 +7,73 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Models
 {
     public class CustomerMethods
     {
+        public static IResult CreateCustomer(ICustomerRepository customerRepo, Customer customer)
+        {
+            try
+            {
+                customer.Rowguid = Guid.NewGuid();
+                customer.ModifiedDate = DateTime.Now;
 
-        public static IResult GetCustomerDetails(ICustomerRepo customerRepo, ICustomerAddressRepo customerAddressRepo, IAddressRepo addressRepo, int customerId)
+                customerRepo.CreateCustomer(customer);
+
+                return Results.Created($"/customer?id={customer.CustomerId}", customer);
+            }
+            catch(Exception ex)
+            {
+                return Results.BadRequest(ex);
+            }
+
+        }
+
+        public static IResult Read(ICustomerRepository customerRepo, int? id)
+        {
+            HashSet<Customer> customers = new HashSet<Customer>();
+
+            if (id != null)
+            {
+                Customer customer = customerRepo.GetCustomerById(id);
+                return Results.Ok(customer);
+            }
+            else
+            {
+                customers = customerRepo.GetAllCustomers();
+
+                if (customers == null)
+                {
+                    return Results.NotFound();
+                }
+                else
+                {
+                    return Results.Ok(customers);
+                }
+            }
+
+        }
+
+        public static IResult RemoveCustomer(ICustomerRepository customerRepo, int id)
+        {
+            Customer customer = customerRepo.GetCustomerById(id);
+
+            if (customer != null)
+            {
+                customerRepo.RemoveCustomer(customer);
+
+                return Results.Ok($" Customer with Id {customer.CustomerId} is removed successfully.");
+            }
+            else
+            {
+                return Results.NotFound();
+            }
+
+        }
+
+
+        public static IResult GetCustomerDetails(ICustomerRepository customerRepo, ICustomerAddressRepo customerAddressRepo, IAddressRepo addressRepo, int customerId)
         {
 
             try
             {
-                Customer? customer = customerRepo.GetCustomer(customerId);
+                Customer? customer = customerRepo.GetCustomerById(customerId);
 
                 if (customer == null)
                 {
@@ -27,7 +87,7 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Models
 
                 foreach (CustomerAddress ca in customerAddresses)
                 {
-                    Address address = customerRepo.GetAddress(ca.AddressId);
+                    Address address = addressRepo.GetAddressById(ca.AddressId);
                     Address.Add(address);
                 }
 
@@ -88,11 +148,11 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Models
             }
         }
 
-        public static IResult UpdateCustomer(ICustomerRepo customerRepo, int id, Customer? customer)
+        public static IResult UpdateCustomer(ICustomerRepository customerRepo, int id, Customer? customer)
         {
             try
             {
-                Customer? customerToUpdate = customerRepo.GetCustomer(id);
+                Customer? customerToUpdate = customerRepo.GetCustomerById(id);
 
                 if (customerToUpdate == null && customer != null)
                 {
@@ -101,7 +161,7 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Models
                     newCustomer.Rowguid = Guid.NewGuid();
                     newCustomer.ModifiedDate = DateTime.Now;
 
-                    //repo.CreateCustomer(newCustomer);
+                    customerRepo.CreateCustomer(newCustomer);
 
                     return Results.Created($"/customer?id={customer.CustomerId}", customer);
                 }
@@ -129,13 +189,13 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Models
             }
         }
 
-        public static IResult AddCustomerToAddress(ICustomerRepo customerRepo, ICustomerAddressRepo customerAddressRepo, int customerId, int addressId)
+        public static IResult AddCustomerToAddress(ICustomerRepository customerRepo, ICustomerAddressRepo customerAddressRepo, IAddressRepo addressRepo, int customerId, int addressId)
         {
             try
             {
-                Customer? customer = customerRepo.GetCustomer(customerId);
+                Customer? customer = customerRepo.GetCustomerById(customerId);
 
-                Address? address = customerRepo.GetAddress(addressId);
+                Address? address = addressRepo.GetAddressById(addressId);
 
                 if (customer == null)
                 {
