@@ -8,7 +8,7 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Models
     public class CustomerMethods
     {
 
-        public static IResult GetCustomerDetails(ICustomerRepo customerRepo, ICustomerAddressRepo customerAddressRepo,IAddressRepo addressRepo ,int customerId)
+        public static IResult GetCustomerDetails(ICustomerRepo customerRepo, ICustomerAddressRepo customerAddressRepo, IAddressRepo addressRepo, int customerId)
         {
 
             try
@@ -31,7 +31,12 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Models
                     Address.Add(address);
                 }
 
-               
+                //var test = customerAddressRepo.GetCustomerAddress(customerId).Select(c => new
+                //{
+                //    Customer = c.Customer.FirstName,
+                //    Address = c.Address.AddressLine1,
+                //});
+
                 var CustomerAddress = addressRepo.GetCustomers().Where(c => c.CustomerId == customerId).Select(x => new
                 {
                     CustomerId = x.CustomerId,
@@ -44,7 +49,7 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Models
                     Phone = x.Phone,
                     Rowguid = x.Rowguid,
                     ModifiedDate = x.ModifiedDate,
-                    Address = x.CustomerAddresses.Where(ca => ca.CustomerId == customerId).Select(a => new
+                    Address = x.CustomerAddresses.Select(a => new
                     {
                         AddressId = a.Address.AddressId,
                         AddressLine1 = a.Address.AddressLine1,
@@ -124,7 +129,7 @@ namespace AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Models
             }
         }
 
-        public static IResult AddCustomerToAddress(ICustomerRepo customerRepo, ICustomerAddressRepo customerAddressRepo, int customerId,int addressId)
+        public static IResult AddCustomerToAddress(ICustomerRepo customerRepo, ICustomerAddressRepo customerAddressRepo, int customerId, int addressId)
         {
             try
             {
