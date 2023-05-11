@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using System.Drawing;
 using NuGet.Versioning;
-
+using AdvancedTopicsInC__Assignment1_AdventureWorksAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +12,11 @@ builder.Services.AddDbContext<AdventureWorksLt2019Context>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("AdventureWorksDb"));
 });
+
+
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+
+
 var app = builder.Build();
 
 // Address
@@ -74,30 +79,66 @@ app.MapDelete("/Address/Delete/{id}", async (AdventureWorksLt2019Context db, int
     return Results.NoContent();
 });
 
-// Customer
-app.MapGet("/Customers/{Id?}", async (int? Id, AdventureWorksLt2019Context db) =>
+// --------------------------- Customer Methods
+
+// Get all customers
+app.MapGet("/customers", async (ICustomerRepository repo) =>
 {
+    return repo.GetAllCustomers();
+});
+
+// get customer by Id
+app.MapGet("/Customer",async (ICustomerRepository repo, int? Id) =>
+{
+    HashSet<Customer> customers = new HashSet<Customer>();
+
     if (Id != null)
     {
-        Customer? customer = await db.Customers.FindAsync(Id);
-        if (customer == null)
-        {
-            return Results.NotFound();
-        }
+        Customer customer = repo.GetCustomerById(Id);
         return Results.Ok(customer);
     }
     else
     {
-        List<Customer> customers = await db.Customers.ToListAsync();
-        return Results.Ok(customers);
+        customers = repo.GetAllCustomers();
+
+        if (customers == null)
+        {
+            return Results.NotFound();
+        }
+        else
+        { 
+            return Results.Ok(customers);
+        }       
     }
 });
-app.MapPost("/customer/create", (AdventureWorksLt2019Context db, Customer customer) =>
+
+// Creating Customer
+app.MapPost("/customer/create", (ICustomerRepository repo, Customer customer) =>
 {
-    db.Add(customer);
-    db.SaveChanges();
-    return Results.Ok();
+    customer.Rowguid = Guid.NewGuid();
+    customer.ModifiedDate = DateTime.Now;
+    repo.CreateCustomer(customer);
+;
+    return Results.Created($"/customer?id={customer.CustomerId}", customer);
 });
+
+// Removing Customer
+app.MapDelete("/customer/delete", (ICustomerRepository repo, int id) => {
+
+    Customer customer = repo.GetCustomerById(id);
+
+    if (customer != null)
+    {
+        repo.RemoveCustomer(customer);
+        return Results.Ok($" Customer with Id {customer.CustomerId} is removed successfully.");
+    }
+    else
+    {
+        return Results.NotFound();
+    } 
+
+});
+
 app.MapPut("/customer/update/{id}", async(AdventureWorksLt2019Context db, int id, Customer customer) =>
 {
     IEnumerable<Customer> customers = await db.Customers.ToListAsync();
